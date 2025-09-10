@@ -1,5 +1,5 @@
 steps:
-# Deploy the main Cloud Function only
+# Deploy the main Cloud Function
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gcloud'
   args:
@@ -14,6 +14,18 @@ steps:
   - '--region=europe-west2'
   - '--source=./ingestion'
 
+# Deploy the dummy data generator
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args:
+  - 'functions'
+  - 'deploy'
+  - 'generate-dummy-data'
+  - '--gen2'
+  - '--runtime=python311'
+  - '--trigger-topic=dummy-data-topic'
+  - '--entry-point=generate_dummy_data'
+  - '--region=europe-west2'
+  - '--source=./dummy_ingestion'
+
 timeout: '1600s'
-options:
-  logging: CLOUD_LOGGING_ONLY
