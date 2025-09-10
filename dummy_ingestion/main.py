@@ -59,3 +59,5 @@ def generate_dummy_data(cloud_event):
     except Exception as e:
         print(f"Error generating dummy data: {str(e)}")
         raise e
+    
+    #hi
