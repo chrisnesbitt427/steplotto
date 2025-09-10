@@ -44,21 +44,18 @@ steps:
   args:
   - '-c'
   - |
+    # Delete existing job if it exists, then recreate with new schedule
     if gcloud scheduler jobs describe daily-dummy-data --location=europe-west2 2>/dev/null; then
-      gcloud scheduler jobs update pubsub daily-dummy-data \
-        --schedule="0 8 * * *" \
-        --topic=dummy-data-topic \
-        --message-body="{}" \
-        --time-zone=Europe/London \
-        --location=europe-west2
-    else
-      gcloud scheduler jobs create pubsub daily-dummy-data \
-        --schedule="0 8 * * *" \
-        --topic=dummy-data-topic \
-        --message-body="{}" \
-        --time-zone=Europe/London \
-        --location=europe-west2
+      echo "Deleting existing scheduler job..."
+      gcloud scheduler jobs delete daily-dummy-data --location=europe-west2 --quiet
     fi
+    echo "Creating scheduler job..."
+    gcloud scheduler jobs create pubsub daily-dummy-data \
+      --schedule="0 8 * * *" \
+      --topic=dummy-data-topic \
+      --message-body="{}" \
+      --time-zone=Europe/London \
+      --location=europe-west2
 
 timeout: '1600s'
 options:
