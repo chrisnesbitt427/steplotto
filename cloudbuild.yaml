@@ -1,14 +1,3 @@
-steps:
-# Create Pub/Sub topic if it doesn't exist
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'bash'
-  args:
-  - '-c'
-  - |
-    if ! gcloud pubsub topics describe dummy-data-topic 2>/dev/null; then
-      gcloud pubsub topics create dummy-data-topic
-    fi
-
 # Deploy the main Cloud Function
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gcloud'
