@@ -70,3 +70,6 @@ def insert_to_bigquery(request):
     except Exception as e:
         print(f"Error: {str(e)}")
         return (f'Internal server error: {str(e)}', 500, headers)
+    
+
+#HELLLLLOOOOOOOO DID THIS WORKKKKK
