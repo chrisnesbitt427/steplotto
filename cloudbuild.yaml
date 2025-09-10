@@ -29,3 +29,7 @@ steps:
   - '--source=./dummy_ingestion'
 
 timeout: '1600s'
+
+timeout: '1600s'
+options:
+  logging: CLOUD_LOGGING_ONLY
