@@ -24,3 +24,7 @@ steps:
   - '--entry-point=generate_dummy_data'
   - '--region=europe-west2'
   - '--source=./dummy_ingestion'
+
+timeout: '1600s'
+options:
+  logging: CLOUD_LOGGING_ONLY
