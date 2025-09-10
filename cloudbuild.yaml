@@ -25,6 +25,31 @@ steps:
   - '--region=europe-west2'
   - '--source=./dummy_ingestion'
 
+# Debug: List ingestion folder
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    echo "=== Contents of ingestion ==="
+    ls -la ./ingestion/
+    echo "=== End ingestion debug ==="
+
+# Deploy the insert-to-bigquery function
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args:
+  - 'functions'
+  - 'deploy'
+  - 'insert-to-bigquery'
+  - '--gen2'
+  - '--runtime=python311'
+  - '--trigger-http'
+  - '--allow-unauthenticated'
+  - '--entry-point=insert_to_bigquery'
+  - '--region=europe-west2'
+  - '--source=./ingestion'
+
 timeout: '1600s'
 options:
   logging: CLOUD_LOGGING_ONLY
