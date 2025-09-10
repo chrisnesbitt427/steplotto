@@ -1,3 +1,6 @@
+steps:
+
+
 # Deploy the main Cloud Function
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gcloud'
