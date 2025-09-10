@@ -1,4 +1,15 @@
 steps:
+# Create Pub/Sub topic if it doesn't exist
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    if ! gcloud pubsub topics describe dummy-data-topic 2>/dev/null; then
+      gcloud pubsub topics create dummy-data-topic
+    fi
+
+# Deploy the main Cloud Function
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gcloud'
   args:
@@ -13,7 +24,42 @@ steps:
   - '--region=europe-west2'
   - '--source=./ingestion'
 
-timeout: '1600s'
+# Deploy the dummy data generator
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args:
+  - 'functions'
+  - 'deploy'
+  - 'generate-dummy-data'
+  - '--gen2'
+  - '--runtime=python311'
+  - '--trigger-topic=dummy-data-topic'
+  - '--entry-point=generate_dummy_data'
+  - '--region=europe-west2'
+  - '--source=./dummy_ingestion'
 
+# Handle scheduler job creation/update
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    if gcloud scheduler jobs describe daily-dummy-data --location=europe-west2 2>/dev/null; then
+      gcloud scheduler jobs update pubsub daily-dummy-data \
+        --schedule="0 9 * * *" \
+        --topic=dummy-data-topic \
+        --message-body="{}" \
+        --time-zone=Europe/London \
+        --location=europe-west2
+    else
+      gcloud scheduler jobs create pubsub daily-dummy-data \
+        --schedule="0 9 * * *" \
+        --topic=dummy-data-topic \
+        --message-body="{}" \
+        --time-zone=Europe/London \
+        --location=europe-west2
+    fi
+
+timeout: '1600s'
 options:
   logging: CLOUD_LOGGING_ONLY
