@@ -45,7 +45,6 @@ steps:
   - '--gen2'
   - '--runtime=python311'
   - '--trigger-http'
-  - '--allow-unauthenticated'
   - '--entry-point=insert_to_bigquery'
   - '--region=europe-west2'
   - '--source=./ingestion'
