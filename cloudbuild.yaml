@@ -1,18 +1,15 @@
 steps:
-# Deploy the main Cloud Function
+# Debug: List files
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-  entrypoint: 'gcloud'
+  entrypoint: 'bash'
   args:
-  - 'functions'
-  - 'deploy'
-  - 'insert-to-bigquery'
-  - '--gen2'
-  - '--runtime=python311'
-  - '--trigger-http'
-  - '--allow-unauthenticated'
-  - '--entry-point=insert_to_bigquery'
-  - '--region=europe-west2'
-  - '--source=./ingestion'
+  - '-c'
+  - |
+    echo "=== Repository structure ==="
+    ls -la
+    echo "=== Contents of dummy_ingestion ==="
+    ls -la ./dummy_ingestion/
+    echo "=== End debug ==="
 
 # Deploy the dummy data generator
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -27,9 +24,3 @@ steps:
   - '--entry-point=generate_dummy_data'
   - '--region=europe-west2'
   - '--source=./dummy_ingestion'
-
-timeout: '1600s'
-
-timeout: '1600s'
-options:
-  logging: CLOUD_LOGGING_ONLY
