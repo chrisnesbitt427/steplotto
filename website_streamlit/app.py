@@ -3,6 +3,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from google.cloud import bigquery
+from google.oauth2 import service_account
 import datetime
 import random
 
@@ -149,7 +150,14 @@ st.markdown("""
 def load_steps_data():
     """Load individual steps data"""
     try:
-        client = bigquery.Client()
+        # Use credentials from Streamlit secrets
+        from google.oauth2 import service_account
+        
+        credentials = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"]
+        )
+        client = bigquery.Client(credentials=credentials, project=st.secrets["gcp_service_account"]["project_id"])
+        
         query = """
         SELECT 
             name, 
@@ -174,7 +182,14 @@ def load_steps_data():
 def load_pot_data():
     """Load pot data"""
     try:
-        client = bigquery.Client()
+        # Use credentials from Streamlit secrets
+        from google.oauth2 import service_account
+        
+        credentials = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"]
+        )
+        client = bigquery.Client(credentials=credentials, project=st.secrets["gcp_service_account"]["project_id"])
+        
         query = """
         SELECT 
             date,
