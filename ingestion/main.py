@@ -9,7 +9,7 @@ client = bigquery.Client()
 # Configure your BigQuery details
 PROJECT_ID = "my-project-1706650764881"
 DATASET_ID = "step_lotto" 
-TABLE_ID = "steps"
+TABLE_ID = "user_steps"
 
 @functions_framework.http
 def insert_to_bigquery(request):
