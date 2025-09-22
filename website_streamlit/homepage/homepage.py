@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 @st.cache_resource
 def init_bigquery_client():
     """Initialize BigQuery client - make sure you have credentials set up"""
-    return bigquery.Client()
+    return bigquery.Client(project="my-project-1706650764881")
 
 def get_user_steps(client, username, project_id, dataset_id, table_id):
     """Get user steps data from BigQuery"""

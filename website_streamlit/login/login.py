@@ -4,7 +4,7 @@ from google.cloud import bigquery
 @st.cache_resource
 def init_bigquery_client():
     """Initialize BigQuery client - make sure you have credentials set up"""
-    return bigquery.Client()
+    return bigquery.Client(project="my-project-1706650764881")
 
 def check_user_exists(client, username, project_id, dataset_id, table_id):
     """Check if username exists in BigQuery table"""

@@ -6,7 +6,7 @@ import plotly.express as px
 @st.cache_resource
 def init_bigquery_client():
     """Initialize BigQuery client - make sure you have credentials set up"""
-    return bigquery.Client()
+    return bigquery.Client(project="my-project-1706650764881")
 
 def get_league_members(client, league_id, project_id, dataset_id):
     """Get all members of a specific league"""
