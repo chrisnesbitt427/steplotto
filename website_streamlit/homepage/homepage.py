@@ -181,7 +181,7 @@ def show_homepage(project_id, dataset_id, table_id):
     
     try:
         # Initialize BigQuery client
-        client = init_bigquery_client()
+        client = init_bigquery_client(project = "my-project-1706650764881")
         
         # Get user leagues
         leagues_df = get_user_leagues(client, st.session_state.username, project_id, dataset_id)
@@ -209,7 +209,7 @@ def show_homepage(project_id, dataset_id, table_id):
     
     try:
         # Initialize BigQuery client
-        client = init_bigquery_client()
+        client = init_bigquery_client(project = "my-project-1706650764881")
         
         # Add sample data button (for testing - remove in production)
         col1, col2 = st.columns([3, 1])
