@@ -1,11 +1,17 @@
 import streamlit as st
 from google.cloud import bigquery
+from google.oauth2 import service_account
 
 @st.cache_resource
-def init_bigquery_client(project):
-    """Initialize BigQuery client - make sure you have credentials set up"""
-    return bigquery.Client(project = project)
-
+def init_bigquery_client():
+    """Initialize BigQuery client using service account from secrets"""
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"]
+    )
+    return bigquery.Client(
+        credentials=credentials,
+        project="my-project-1706650764881"
+    )
 def check_user_exists(client, username, project_id, dataset_id, table_id):
     """Check if username exists in BigQuery table"""
     query = f"""
@@ -50,7 +56,7 @@ def show_login_page(project_id, dataset_id, table_id):
         if username.strip():
             try:
                 # Initialize BigQuery client
-                client = init_bigquery_client(project= "my-project-1706650764881")
+                client = init_bigquery_client()
                 
                 # Check if user exists
                 user_exists = check_user_exists(client, username.strip(), project_id, dataset_id, table_id)

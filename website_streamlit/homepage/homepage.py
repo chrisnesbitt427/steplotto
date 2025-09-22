@@ -3,11 +3,18 @@ from google.cloud import bigquery
 import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
+from google.oauth2 import service_account
 
 @st.cache_resource
-def init_bigquery_client(project):
-    """Initialize BigQuery client - make sure you have credentials set up"""
-    return bigquery.Client(project = project)
+def init_bigquery_client():
+    """Initialize BigQuery client using service account from secrets"""
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"]
+    )
+    return bigquery.Client(
+        credentials=credentials,
+        project="my-project-1706650764881"
+    )
 
 def get_user_steps(client, username, project_id, dataset_id, table_id):
     """Get user steps data from BigQuery"""
@@ -147,7 +154,7 @@ def show_homepage(project_id, dataset_id, table_id):
             if st.button("Join", type="primary", key="join_league_btn"):
                 if league_to_join.strip():
                     try:
-                        client = init_bigquery_client(project = "my-project-1706650764881")
+                        client = init_bigquery_client()
                         
                         # Check if league exists
                         if not check_league_exists_for_join(client, league_to_join.strip(), project_id, dataset_id):
@@ -181,7 +188,7 @@ def show_homepage(project_id, dataset_id, table_id):
     
     try:
         # Initialize BigQuery client
-        client = init_bigquery_client(project = "my-project-1706650764881")
+        client = init_bigquery_client()
         
         # Get user leagues
         leagues_df = get_user_leagues(client, st.session_state.username, project_id, dataset_id)
@@ -209,7 +216,7 @@ def show_homepage(project_id, dataset_id, table_id):
     
     try:
         # Initialize BigQuery client
-        client = init_bigquery_client(project = "my-project-1706650764881")
+        client = init_bigquery_client()
         
         # Add sample data button (for testing - remove in production)
         col1, col2 = st.columns([3, 1])

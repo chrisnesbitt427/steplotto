@@ -2,11 +2,18 @@ import streamlit as st
 from google.cloud import bigquery
 import pandas as pd
 import plotly.express as px
+from google.oauth2 import service_account
 
 @st.cache_resource
 def init_bigquery_client():
-    """Initialize BigQuery client - make sure you have credentials set up"""
-    return bigquery.Client()
+    """Initialize BigQuery client using service account from secrets"""
+    credentials = service_account.Credentials.from_service_account_info(
+        st.secrets["gcp_service_account"]
+    )
+    return bigquery.Client(
+        credentials=credentials,
+        project="my-project-1706650764881"
+    )
 
 def get_league_members(client, league_id, project_id, dataset_id):
     """Get all members of a specific league"""
