@@ -5,9 +5,9 @@ import plotly.express as px
 from datetime import datetime, timedelta
 
 @st.cache_resource
-def init_bigquery_client():
+def init_bigquery_client(project):
     """Initialize BigQuery client - make sure you have credentials set up"""
-    return bigquery.Client()
+    return bigquery.Client(project = project)
 
 def get_user_steps(client, username, project_id, dataset_id, table_id):
     """Get user steps data from BigQuery"""
@@ -147,7 +147,7 @@ def show_homepage(project_id, dataset_id, table_id):
             if st.button("Join", type="primary", key="join_league_btn"):
                 if league_to_join.strip():
                     try:
-                        client = init_bigquery_client()
+                        client = init_bigquery_client(project = "my-project-1706650764881")
                         
                         # Check if league exists
                         if not check_league_exists_for_join(client, league_to_join.strip(), project_id, dataset_id):
