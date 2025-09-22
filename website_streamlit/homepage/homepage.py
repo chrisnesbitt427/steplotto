@@ -6,8 +6,26 @@ from datetime import datetime, timedelta
 
 @st.cache_resource
 def init_bigquery_client():
-    """Initialize BigQuery client - make sure you have credentials set up"""
-    return bigquery.Client(project="my-project-1706650764881")
+    """Initialize BigQuery client with proper authentication"""
+    try:
+        # Check if we're running on Streamlit Cloud
+        if "gcp_service_account" in st.secrets:
+            # Use service account from secrets
+            credentials = service_account.Credentials.from_service_account_info(
+                st.secrets["gcp_service_account"]
+            )
+            client = bigquery.Client(
+                credentials=credentials,
+                project=st.secrets["gcp_service_account"]["project_id"]
+            )
+        else:
+            # Local development - use default credentials
+            client = bigquery.Client(project="my-project-1706650764881")
+        
+        return client
+    except Exception as e:
+        st.error(f"Failed to initialize BigQuery client: {str(e)}")
+        return None
 
 def get_user_steps(client, username, project_id, dataset_id, table_id):
     """Get user steps data from BigQuery"""
