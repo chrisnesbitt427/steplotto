@@ -1,5 +1,6 @@
 import streamlit as st
 from google.cloud import bigquery
+from google.oauth2 import service_account
 
 @st.cache_resource
 def init_bigquery_client():

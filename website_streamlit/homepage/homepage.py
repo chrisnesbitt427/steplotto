@@ -3,6 +3,7 @@ from google.cloud import bigquery
 import pandas as pd
 import plotly.express as px
 from datetime import datetime, timedelta
+from google.oauth2 import service_account
 
 @st.cache_resource
 def init_bigquery_client():
