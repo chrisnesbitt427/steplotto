@@ -1,7 +1,7 @@
 import functions_framework
 from google.cloud import bigquery
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Initialize BigQuery client
 client = bigquery.Client()
@@ -9,7 +9,45 @@ client = bigquery.Client()
 # Configure your BigQuery details
 PROJECT_ID = "my-project-1706650764881"
 DATASET_ID = "step_lotto" 
-TABLE_ID = "user_steps"
+TABLE_ID = "user_steps_input"
+
+def json_to_records(data):
+    """
+    Convert JSON input with steps array to list of records (like DataFrame rows)
+    
+    Args:
+        data (dict): Dictionary with name, steps array, and date
+    
+    Returns:
+        list: List of dictionaries representing rows
+    """
+    
+    # Extract fields
+    name = data.get('name')
+    steps_array = data.get('steps')
+    base_date = data.get('date')
+    
+    # Validate required fields
+    if not all([name, steps_array, base_date]):
+        raise ValueError('Missing required fields: name, steps, date')
+    
+    # Create list of records
+    records = []
+    base_date_obj = datetime.strptime(base_date, '%Y-%m-%d')
+    
+    for i, step_count in enumerate(steps_array):
+        # Calculate the date for each step count (going backwards from base_date)
+        current_date = base_date_obj - timedelta(days=len(steps_array) - 1 - i)
+        
+        record = {
+            'name': name,
+            'steps': int(step_count),
+            'date': current_date.strftime('%Y-%m-%d'),
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        records.append(record)
+    
+    return records
 
 @functions_framework.http
 def insert_to_bigquery(request):
@@ -37,35 +75,25 @@ def insert_to_bigquery(request):
         else:
             return ('Invalid JSON', 400, headers)
         
-        # Extract the fields from JSON
-        name = data.get('name')
-        steps = data.get('steps')
-        date = data.get('date')
-        
-        # Validate required fields
-        if not all([name, steps, date]):
-            return ('Missing required fields: name, steps, date', 400, headers)
-        
-        # Prepare the row for BigQuery
-        row_to_insert = {
-            'name': name,
-            'steps': int(steps),  # Ensure steps is an integer
-            'date': date,  # Assuming date is in correct format (YYYY-MM-DD)
-            'timestamp': datetime.utcnow().isoformat()  # Add insertion timestamp
-        }
+        # Convert JSON to records using the DataFrame logic
+        rows_to_insert = json_to_records(data)
         
         # Get table reference
         table_ref = client.dataset(DATASET_ID).table(TABLE_ID)
         table = client.get_table(table_ref)
         
-        # Insert the row
-        errors = client.insert_rows_json(table, [row_to_insert])
+        # Insert all rows
+        errors = client.insert_rows_json(table, rows_to_insert)
         
         if errors:
             print(f"BigQuery insert errors: {errors}")
             return (f'Error inserting data: {errors}', 500, headers)
         
-        return ('Data inserted successfully', 200, headers)
+        return (f'Successfully inserted {len(rows_to_insert)} rows for {data.get("name")}', 200, headers)
+        
+    except ValueError as ve:
+        print(f"Validation error: {str(ve)}")
+        return (f'Validation error: {str(ve)}', 400, headers)
         
     except Exception as e:
         print(f"Error: {str(e)}")
