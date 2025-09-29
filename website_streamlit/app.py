@@ -24,7 +24,7 @@ def main():
     
     # Route to appropriate page
     if not st.session_state.logged_in:
-        show_login_page(PROJECT_ID, DATASET_ID, TABLE_ID)
+        show_login_page(PROJECT_ID, DATASET_ID)  # ← REMOVED TABLE_ID
     else:
         if st.session_state.page == "create_league":
             show_create_league_page(PROJECT_ID, DATASET_ID)

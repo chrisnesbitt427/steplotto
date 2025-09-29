@@ -12,17 +12,18 @@ def init_bigquery_client():
         credentials=credentials,
         project="my-project-1706650764881"
     )
-def check_user_exists(client, username, project_id, dataset_id, table_id):
-    """Check if username exists in BigQuery table"""
+
+def check_user_exists(client, email, project_id, dataset_id):
+    """Check if email exists in user_ids table"""
     query = f"""
     SELECT COUNT(*) as count
-    FROM `{project_id}.{dataset_id}.{table_id}`
-    WHERE name = @username
+    FROM `{project_id}.{dataset_id}.user_ids`
+    WHERE user_id = @email
     """
     
     job_config = bigquery.QueryJobConfig(
         query_parameters=[
-            bigquery.ScalarQueryParameter("username", "STRING", username)
+            bigquery.ScalarQueryParameter("email", "STRING", email)
         ]
     )
     
@@ -33,51 +34,87 @@ def check_user_exists(client, username, project_id, dataset_id, table_id):
         return row.count > 0
     return False
 
-def add_user(client, username, project_id, dataset_id, table_id):
-    """Add new user to BigQuery table"""
-    table_ref = client.dataset(dataset_id, project=project_id).table(table_id)
+def add_user(client, email, first_name, last_name, project_id, dataset_id):
+    """Add new user to user_ids table"""
+    table_ref = client.dataset(dataset_id, project=project_id).table("user_ids")
     table = client.get_table(table_ref)
     
     # Create row to insert
-    rows_to_insert = [{"name": username}]
+    rows_to_insert = [{
+        "user_id": email,
+        "first_name": first_name,
+        "last_name": last_name
+    }]
     
     errors = client.insert_rows_json(table, rows_to_insert)
     return len(errors) == 0
 
-def show_login_page(project_id, dataset_id, table_id):
-    """Display the login page"""
-    st.title("🔐 Login")
+def show_login_page(project_id, dataset_id):
+    """Display the login page with separate Login and Sign Up options"""
+    st.title("🔐 Step Lotto")
     
-    # Username input
-    username = st.text_input("Enter your username:", placeholder="Username")
+    # Create tabs for Login and Sign Up
+    tab1, tab2 = st.tabs(["Login", "Sign Up"])
     
-    # Login button
-    if st.button("Login / Sign In", type="primary"):
-        if username.strip():
-            try:
-                # Initialize BigQuery client
-                client = init_bigquery_client()
-                
-                # Check if user exists
-                user_exists = check_user_exists(client, username.strip(), project_id, dataset_id, table_id)
-                
-                if user_exists:
-                    st.success(f"Welcome back, {username}!")
-                    st.session_state.logged_in = True
-                    st.session_state.username = username.strip()
-                    st.rerun()
-                else:
-                    # Add new user
-                    if add_user(client, username.strip(), project_id, dataset_id, table_id):
-                        st.success(f"New user created! Welcome, {username}!")
+    # Login Tab
+    with tab1:
+        st.subheader("Login to your account")
+        login_email = st.text_input("Email:", placeholder="your.email@example.com", key="login_email")
+        
+        if st.button("Login", type="primary", key="login_button"):
+            if login_email.strip():
+                try:
+                    # Initialize BigQuery client
+                    client = init_bigquery_client()
+                    
+                    # Check if user exists
+                    user_exists = check_user_exists(client, login_email.strip(), project_id, dataset_id)
+                    
+                    if user_exists:
+                        st.success(f"Welcome back!")
                         st.session_state.logged_in = True
-                        st.session_state.username = username.strip()
+                        st.session_state.username = login_email.strip()
                         st.rerun()
                     else:
-                        st.error("Failed to create user. Please try again.")
+                        st.error("Email not found. Please sign up if you're a new user.")
                         
-            except Exception as e:
-                st.error(f"Error connecting to database: {str(e)}")
-                st.info("Make sure your BigQuery credentials are properly configured.")
-        else:
-            st.warning("Please enter a username.")
+                except Exception as e:
+                    st.error(f"Error connecting to database: {str(e)}")
+                    st.info("Make sure your BigQuery credentials are properly configured.")
+            else:
+                st.warning("Please enter your email.")
+    
+    # Sign Up Tab
+    with tab2:
+        st.subheader("Create a new account")
+        signup_email = st.text_input("Email:", placeholder="your.email@example.com", key="signup_email")
+        signup_first_name = st.text_input("First Name:", placeholder="John", key="signup_first_name")
+        signup_last_name = st.text_input("Last Name:", placeholder="Doe", key="signup_last_name")
+        
+        if st.button("Sign Up", type="primary", key="signup_button"):
+            if signup_email.strip() and signup_first_name.strip() and signup_last_name.strip():
+                try:
+                    # Initialize BigQuery client
+                    client = init_bigquery_client()
+                    
+                    # Check if user already exists
+                    user_exists = check_user_exists(client, signup_email.strip(), project_id, dataset_id)
+                    
+                    if user_exists:
+                        st.error("Email already exists. Please login or use a different email.")
+                    else:
+                        # Add new user
+                        if add_user(client, signup_email.strip(), signup_first_name.strip(), 
+                                   signup_last_name.strip(), project_id, dataset_id):
+                            st.success(f"Account created successfully! Welcome, {signup_first_name}!")
+                            st.session_state.logged_in = True
+                            st.session_state.username = signup_email.strip()
+                            st.rerun()
+                        else:
+                            st.error("Failed to create account. Please try again.")
+                            
+                except Exception as e:
+                    st.error(f"Error connecting to database: {str(e)}")
+                    st.info("Make sure your BigQuery credentials are properly configured.")
+            else:
+                st.warning("Please fill in all fields (email, first name, and last name).")
