@@ -14,11 +14,17 @@ def init_bigquery_client():
     )
 
 def check_user_exists(client, email, project_id, dataset_id):
-    """Check if email exists in user_ids table"""
+    """Check if email exists in user_ids table and return has_steps status"""
     query = f"""
-    SELECT COUNT(*) as count
-    FROM `{project_id}.{dataset_id}.user_ids`
-    WHERE user_id = @email
+    SELECT 
+        u.user_id,
+        EXISTS(
+            SELECT 1 
+            FROM `{project_id}.{dataset_id}.user_steps` s 
+            WHERE s.name = u.user_id
+        ) AS has_steps
+    FROM `{project_id}.{dataset_id}.user_ids` u
+    WHERE u.user_id = @email
     """
     
     job_config = bigquery.QueryJobConfig(
@@ -31,8 +37,8 @@ def check_user_exists(client, email, project_id, dataset_id):
     results = query_job.result()
     
     for row in results:
-        return row.count > 0
-    return False
+        return True, row.has_steps
+    return False, False
 
 def add_user(client, email, first_name, last_name, project_id, dataset_id):
     """Add new user to user_ids table"""
@@ -67,13 +73,20 @@ def show_login_page(project_id, dataset_id):
                     # Initialize BigQuery client
                     client = init_bigquery_client()
                     
-                    # Check if user exists
-                    user_exists = check_user_exists(client, login_email.strip(), project_id, dataset_id)
+                    # Check if user exists and get has_steps status
+                    user_exists, has_steps = check_user_exists(client, login_email.strip(), project_id, dataset_id)
                     
                     if user_exists:
                         st.success(f"Welcome back!")
                         st.session_state.logged_in = True
                         st.session_state.username = login_email.strip()
+                        
+                        # Route based on has_steps status
+                        if has_steps:
+                            st.session_state.page = "homepage"
+                        else:
+                            st.session_state.page = "setup_steps"
+                        
                         st.rerun()
                     else:
                         st.error("Email not found. Please sign up if you're a new user.")
@@ -98,7 +111,7 @@ def show_login_page(project_id, dataset_id):
                     client = init_bigquery_client()
                     
                     # Check if user already exists
-                    user_exists = check_user_exists(client, signup_email.strip(), project_id, dataset_id)
+                    user_exists, _ = check_user_exists(client, signup_email.strip(), project_id, dataset_id)
                     
                     if user_exists:
                         st.error("Email already exists. Please login or use a different email.")
@@ -109,6 +122,7 @@ def show_login_page(project_id, dataset_id):
                             st.success(f"Account created successfully! Welcome, {signup_first_name}!")
                             st.session_state.logged_in = True
                             st.session_state.username = signup_email.strip()
+                            st.session_state.page = "setup_steps"  # New users go to setup
                             st.rerun()
                         else:
                             st.error("Failed to create account. Please try again.")

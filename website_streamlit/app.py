@@ -3,6 +3,7 @@ from login.login import show_login_page
 from homepage.homepage import show_homepage
 from create_league.create_league import show_create_league_page
 from league_page.league_page import show_league_page
+from setup_steps.setup_steps import show_setup_steps_page
 
 def main():
     st.set_page_config(page_title="Step Lotto", page_icon="🔐")
@@ -24,12 +25,14 @@ def main():
     
     # Route to appropriate page
     if not st.session_state.logged_in:
-        show_login_page(PROJECT_ID, DATASET_ID)  # ← REMOVED TABLE_ID
+        show_login_page(PROJECT_ID, DATASET_ID)
     else:
         if st.session_state.page == "create_league":
             show_create_league_page(PROJECT_ID, DATASET_ID)
         elif st.session_state.page == "league_page":
             show_league_page(st.session_state.current_league, PROJECT_ID, DATASET_ID)
+        elif st.session_state.page == "setup_steps":
+            show_setup_steps_page(PROJECT_ID, DATASET_ID, TABLE_ID)
         else:
             show_homepage(PROJECT_ID, DATASET_ID, TABLE_ID)
 

@@ -20,11 +20,11 @@ def get_user_steps(client, username, project_id, dataset_id, table_id):
     """Get user steps data from BigQuery"""
     query = f"""
     SELECT 
-        DATE(timestamp) as day,
+        DATE(date) as day,
         SUM(steps) as total_steps
     FROM `{project_id}.{dataset_id}.{table_id}`
     WHERE name = @username
-    GROUP BY DATE(timestamp)
+    GROUP BY DATE(date)
     ORDER BY day
     """
     
@@ -52,8 +52,8 @@ def add_sample_data(client, username, project_id, dataset_id, table_id):
         date = datetime.now() - timedelta(days=i)
         steps = 5000 + (i * 1000) + (i % 3 * 500)  # Varying step counts
         sample_data.append({
-            "user_id": username,
-            "timestamp": date.isoformat(),
+            "name": username,
+            "date": date.date().isoformat(),
             "steps": steps
         })
     
@@ -241,8 +241,8 @@ def show_homepage(project_id, dataset_id, table_id):
             with col3:
                 st.metric("Best Day", f"{int(steps_df['total_steps'].max()):,}")
             
-            # Create the steps chart
-            fig = px.line(
+            # Create the steps bar chart
+            fig = px.bar(
                 steps_df, 
                 x='day', 
                 y='total_steps',
@@ -255,8 +255,9 @@ def show_homepage(project_id, dataset_id, table_id):
             
             # Customize the chart
             fig.update_traces(
-                line=dict(width=3, color='#1f77b4'),
-                marker=dict(size=8)
+                marker_color='#1f77b4',
+                marker_line_color='#1f77b4',
+                marker_line_width=1
             )
             
             fig.update_layout(
