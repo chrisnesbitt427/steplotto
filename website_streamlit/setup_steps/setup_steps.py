@@ -25,6 +25,13 @@ def show_setup_steps_page(project_id, dataset_id, table_id):
     # Instructions for installing the shortcut
     st.subheader("🔧 Installation Instructions")
     
+    # Add video tutorial
+    st.markdown("### 📹 Video Tutorial")
+    st.video("https://www.youtube.com/watch?v=UKPWr8uzBhc")
+    st.caption("Watch this quick tutorial to see how to set up the shortcut")
+    
+    st.markdown("---")
+    
     st.markdown("""
     ### Step 1: Install the Shortcut
     Click the button below to open the Step Lotto shortcut in the Shortcuts app on your iPhone:
