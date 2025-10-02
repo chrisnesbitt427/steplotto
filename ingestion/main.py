@@ -31,6 +31,9 @@ def json_to_records(data):
     if not all([name, steps_array, base_date]):
         raise ValueError('Missing required fields: name, steps, date')
     
+    # Normalize name to lowercase
+    normalized_name = name.strip().lower()
+    
     # Create list of records
     records = []
     base_date_obj = datetime.strptime(base_date, '%Y-%m-%d')
@@ -40,7 +43,7 @@ def json_to_records(data):
         current_date = base_date_obj - timedelta(days=i)
         
         record = {
-            'name': name,
+            'name': normalized_name,
             'steps': int(step_count),
             'date': current_date.strftime('%Y-%m-%d'),
             'timestamp': datetime.utcnow().isoformat()
@@ -89,7 +92,9 @@ def insert_to_bigquery(request):
             print(f"BigQuery insert errors: {errors}")
             return (f'Error inserting data: {errors}', 500, headers)
         
-        return (f'Successfully inserted {len(rows_to_insert)} rows for {data.get("name")}', 200, headers)
+        # Use the normalized name from the first record for the response message
+        inserted_name = rows_to_insert[0]['name'] if rows_to_insert else data.get('name')
+        return (f'Successfully inserted {len(rows_to_insert)} rows for {inserted_name}', 200, headers)
         
     except ValueError as ve:
         print(f"Validation error: {str(ve)}")

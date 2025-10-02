@@ -73,13 +73,16 @@ def show_login_page(project_id, dataset_id):
                     # Initialize BigQuery client
                     client = init_bigquery_client()
                     
+                    # Normalize email to lowercase
+                    normalized_email = login_email.strip().lower()
+                    
                     # Check if user exists and get has_steps status
-                    user_exists, has_steps = check_user_exists(client, login_email.strip(), project_id, dataset_id)
+                    user_exists, has_steps = check_user_exists(client, normalized_email, project_id, dataset_id)
                     
                     if user_exists:
                         st.success(f"Welcome back!")
                         st.session_state.logged_in = True
-                        st.session_state.username = login_email.strip()
+                        st.session_state.username = normalized_email
                         
                         # Route based on has_steps status
                         if has_steps:
@@ -110,18 +113,21 @@ def show_login_page(project_id, dataset_id):
                     # Initialize BigQuery client
                     client = init_bigquery_client()
                     
+                    # Normalize email to lowercase
+                    normalized_email = signup_email.strip().lower()
+                    
                     # Check if user already exists
-                    user_exists, _ = check_user_exists(client, signup_email.strip(), project_id, dataset_id)
+                    user_exists, _ = check_user_exists(client, normalized_email, project_id, dataset_id)
                     
                     if user_exists:
                         st.error("Email already exists. Please login or use a different email.")
                     else:
                         # Add new user
-                        if add_user(client, signup_email.strip(), signup_first_name.strip(), 
+                        if add_user(client, normalized_email, signup_first_name.strip(), 
                                    signup_last_name.strip(), project_id, dataset_id):
                             st.success(f"Account created successfully! Welcome, {signup_first_name}!")
                             st.session_state.logged_in = True
-                            st.session_state.username = signup_email.strip()
+                            st.session_state.username = normalized_email
                             st.session_state.page = "setup_steps"  # New users go to setup
                             st.rerun()
                         else:
