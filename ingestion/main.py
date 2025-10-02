@@ -37,7 +37,7 @@ def json_to_records(data):
     
     for i, step_count in enumerate(steps_array):
         # Calculate the date for each step count (going backwards from base_date)
-        current_date = base_date_obj - timedelta(days=len(steps_array) - 1 - i)
+        current_date = base_date_obj - timedelta(days=i)
         
         record = {
             'name': name,
