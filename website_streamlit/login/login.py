@@ -128,7 +128,7 @@ def show_login_page(project_id, dataset_id):
                             st.success(f"Account created successfully! Welcome, {signup_first_name}!")
                             st.session_state.logged_in = True
                             st.session_state.username = normalized_email
-                            st.session_state.page = "setup_steps"  # New users go to setup
+                            st.session_state.page = "homepage"  # New users go to homepage
                             st.rerun()
                         else:
                             st.error("Failed to create account. Please try again.")

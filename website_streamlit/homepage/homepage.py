@@ -16,6 +16,27 @@ def init_bigquery_client():
         project="my-project-1706650764881"
     )
 
+def check_user_has_steps(client, username, project_id, dataset_id, table_id):
+    """Check if user has any step data"""
+    query = f"""
+    SELECT COUNT(*) as count
+    FROM `{project_id}.{dataset_id}.{table_id}`
+    WHERE name = @username
+    """
+    
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ScalarQueryParameter("username", "STRING", username)
+        ]
+    )
+    
+    query_job = client.query(query, job_config=job_config)
+    results = query_job.result()
+    
+    for row in results:
+        return row.count > 0
+    return False
+
 def get_user_steps(client, username, project_id, dataset_id, table_id):
     """Get user steps data from BigQuery"""
     query = f"""
@@ -140,6 +161,22 @@ def show_homepage(project_id, dataset_id, table_id):
     """Display the homepage after login"""
     st.title("🏠 Homepage")
     st.write(f"Hello, **{st.session_state.username}**! You are successfully logged in.")
+    
+    # Initialize BigQuery client
+    try:
+        client = init_bigquery_client()
+        has_steps = check_user_has_steps(client, st.session_state.username, project_id, dataset_id, table_id)
+    except Exception as e:
+        st.error(f"Error checking step data: {str(e)}")
+        has_steps = False
+    
+    # Show setup banner if user doesn't have steps
+    if not has_steps:
+        st.info("📱 **Get Started:** You haven't set up step tracking yet!")
+        if st.button("🔧 Set Up Step Tracking Now", type="primary", use_container_width=True):
+            st.session_state.page = "setup_steps"
+            st.rerun()
+        st.markdown("---")
     
     # Navigation buttons
     col1, col2, col3 = st.columns([1, 1, 1])
@@ -289,7 +326,8 @@ def show_homepage(project_id, dataset_id, table_id):
             
         else:
             st.info("No step data found for your account.")
-            st.write("Click 'Add Sample Data' to see how the dashboard works, or start tracking your steps!")
+            if not has_steps:
+                st.write("Set up step tracking using the button above to start seeing your data here!")
             
     except Exception as e:
         st.error(f"Error loading step data: {str(e)}")
